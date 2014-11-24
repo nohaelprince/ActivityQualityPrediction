@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=640">
+
+    <link rel="stylesheet" href="stylesheets/core.css" media="screen">
+    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+
+    <script type="text/javascript" src="javascripts/modernizr.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('#main_content').headsmart()
+      })
+    </script>
+    <title>Activityqualityprediction by nohaelprince</title>
+  </head>
+
+  <body>
+    <a id="forkme_banner" href="https://github.com/nohaelprince/ActivityQualityPrediction">View on GitHub</a>
+    <div class="shell">
+
+      <header>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <h1>Activityqualityprediction</h1>
+            <h2>predict the activity quality from activity monitors</h2>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+      </header>
+
+      <section id="downloads">
+        <span class="inner">
+          <a href="https://github.com/nohaelprince/ActivityQualityPrediction/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/nohaelprince/ActivityQualityPrediction/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+        </span>
+      </section>
+
+
+      <span class="banner-fix"></span>
+
+
+      <section id="main_content">
+        <p>&lt;!DOCTYPE html&gt;</p>
+
+<p></p>
+
+<p></p>
+
+<p>
+
+</p>
+
+<p></p>
+
+<p></p>
+
+<p></p>project
+
+
+
+<p>
+
+</p>
+
+
+
+code{white-space: pre;}
+
+<p></p>
+
+
+
+
+  pre:not([class]) {
+    background-color: white;
+  }
+
+
+
+
+<p></p>
+
+<p></p>
+
+
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+<div>
+
+
+<div id="header">
+<h1>
+<a id="project" class="anchor" href="#project" aria-hidden="true"><span class="octicon octicon-link"></span></a>project</h1>
+<h4>
+<a id="noha-elprince" class="anchor" href="#noha-elprince" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>Noha Elprince</em>
+</h4>
+<h4>
+<a id="november-23-2014" class="anchor" href="#november-23-2014" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>November 23, 2014</em>
+</h4>
+</div>
+
+<div id="summary">
+<h2>
+<a id="summary" class="anchor" href="#summary" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary</h2>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit, it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, our goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.</p>
+<p>Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:</p>
+<p>exactly according to the specification (Class A) throwing the elbows to the front (Class B) lifting the dumbbell only halfway (Class C) lowering the dumbbell only halfway (Class D) throwing the hips to the front (Class E)</p>
+<p>Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.</p>
+<p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a></p>
+<p>The main objectives of this project are as follows</p>
+<ul>
+<li>Predict the manner in which they did the exercise</li>
+<li>Build a prediction model</li>
+<li>Calculate the out of sample error.</li>
+<li>Use the prediction model to predict 20 different test cases provided</li>
+</ul>
+</div>
+
+<div id="load-data">
+<h2>
+<a id="load-data" class="anchor" href="#load-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Load Data</h2>
+<pre><code>  training &lt;- read.csv(file="./data/pml-training.csv", head=TRUE, na.strings=c("NA",""))
+  testing &lt;- read.csv(file="data/pml-testing.csv", head=TRUE, na.strings=c("NA",""))
+  dim(training)   #[1] 19622   160</code></pre>
+<pre><code>## [1] 19622   160</code></pre>
+<pre><code>  dim(testing)    #[1]  20 160</code></pre>
+<pre><code>## [1]  20 160</code></pre>
+<pre><code>  # str(training)</code></pre>
+<p>The dataset comprises 160 features and 19622 observations in the training set and 20 test cases in the testing set.</p>
+</div>
+
+<div id="processing-data">
+<h2>
+<a id="processing-data" class="anchor" href="#processing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Processing data</h2>
+<p>First, we check how many columns have NA values in the training and testing data and what is the quantity of NA values present.</p>
+<pre><code>  sum(is.na(training)) #[1] 1921600</code></pre>
+<pre><code>## [1] 1921600</code></pre>
+<pre><code>  sum(is.na(testing))  #[1] 2000 </code></pre>
+<pre><code>## [1] 2000</code></pre>
+<p>we are going to ignore NA values using the following code segment</p>
+<pre><code># for training dataset
+columnNACounts &lt;- colSums(is.na(training)) 
+# columnNACounts 
+# after checking columnNACounts , we noticed:
+# most columns with NA values have sum of NA values exceeeds 19200 
+badColumns &lt;- columnNACounts &gt;= 19200           
+cleanTrainingdata &lt;- training[!badColumns]        
+sum(is.na(cleanTrainingdata)) # 0</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre><code>cleanTrainingdata &lt;- cleanTrainingdata[, c(7:60)] 
+
+
+# same for testing dataset
+columnNACounts &lt;- colSums(is.na(testing))  
+# columnNACounts 
+# after checking columnNACounts , we noticed:
+# most columns with NA values have sum of NA values exceeeds 20
+badColumns &lt;- columnNACounts &gt;= 20                
+cleanTestingdata &lt;- testing[!badColumns]       
+sum(is.na(cleanTestingdata)) # 0                   </code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre><code>cleanTestingdata &lt;- cleanTestingdata[, c(7:60)]</code></pre>
+</div>
+
+<div id="feature-selection">
+<h2>
+<a id="feature-selection" class="anchor" href="#feature-selection" aria-hidden="true"><span class="octicon octicon-link"></span></a>Feature Selection</h2>
+<div id="exploratory-data-analysis">
+<h3>
+<a id="exploratory-data-analysis" class="anchor" href="#exploratory-data-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exploratory Data Analysis</h3>
+<pre><code>  plot(cleanTrainingdata$classe,col=rainbow(5),main = "classe frequency plot")</code></pre>
+<p><img title alt width="672"></p>
+<p>Now we start partitioning the data:</p>
+</div>
+
+<div id="partition-cleaned-training-data-a-training-set-and-a-cross-validation-set.">
+<h3>
+<a id="partition-cleaned-training-data--a-training-set-and-a-cross-validation-set" class="anchor" href="#partition-cleaned-training-data--a-training-set-and-a-cross-validation-set" aria-hidden="true"><span class="octicon octicon-link"></span></a>Partition cleaned training data : A training set and a cross validation set.</h3>
+<pre><code>library(caret)
+inTrain &lt;- createDataPartition(y = cleanTrainingdata$classe, p = 0.6, list = FALSE)
+trainingdata &lt;- cleanTrainingdata[inTrain, ]
+crossval &lt;- cleanTrainingdata[-inTrain, ]</code></pre>
+</div>
+
+<div id="fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables.">
+<h3>
+<a id="fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables" class="anchor" href="#fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fit a random forest predictor relating the factor variable classe to the remaining variables.</h3>
+<pre><code>#library(randomForest); library(kernlab); library(caret)
+#model &lt;- randomForest(classe ~ ., data = training, importance = FALSE)
+cvCtrl &lt;- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
+model &lt;- train(classe ~ ., data = trainingdata, method = "rf", trControl = cvCtrl)</code></pre>
+<pre><code>## + Fold1: mtry= 2 
+## - Fold1: mtry= 2 
+## + Fold1: mtry=27 
+## - Fold1: mtry=27 
+## + Fold1: mtry=53 
+## - Fold1: mtry=53 
+## + Fold2: mtry= 2 
+## - Fold2: mtry= 2 
+## + Fold2: mtry=27 
+## - Fold2: mtry=27 
+## + Fold2: mtry=53 
+## - Fold2: mtry=53 
+## + Fold3: mtry= 2 
+## - Fold3: mtry= 2 
+## + Fold3: mtry=27 
+## - Fold3: mtry=27 
+## + Fold3: mtry=53 
+## - Fold3: mtry=53 
+## + Fold4: mtry= 2 
+## - Fold4: mtry= 2 
+## + Fold4: mtry=27 
+## - Fold4: mtry=27 
+## + Fold4: mtry=53 
+## - Fold4: mtry=53 
+## + Fold5: mtry= 2 
+## - Fold5: mtry= 2 
+## + Fold5: mtry=27 
+## - Fold5: mtry=27 
+## + Fold5: mtry=53 
+## - Fold5: mtry=53 
+## Aggregating results
+## Selecting tuning parameters
+## Fitting mtry = 27 on full training set</code></pre>
+</div>
+
+<div id="build-the-model-using-5-fold-cross-validation">
+<h3>
+<a id="build-the-model-using-5-fold-cross-validation" class="anchor" href="#build-the-model-using-5-fold-cross-validation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build the model using 5-fold cross validation</h3>
+<p>Here, we calculate the in sample accuracy which is the prediction accuracy of our model on the training data set.</p>
+<pre><code>training_pred &lt;- predict(model, trainingdata)# We build the model using 5-fold cross validation.
+confusionMatrix(training_pred, trainingdata$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 3348    0    0    0    0
+##          B    0 2279    0    0    0
+##          C    0    0 2054    0    0
+##          D    0    0    0 1930    0
+##          E    0    0    0    0 2165
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9997, 1)
+##     No Information Rate : 0.2843     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar's Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
+<p>Thus, from the above confusion matrix, sample accuracy value is 100%.</p>
+</div>
+
+<div id="calculate-out-of-sample-accuracy">
+<h3>
+<a id="calculate-out-of-sample-accuracy" class="anchor" href="#calculate-out-of-sample-accuracy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Calculate out-of-sample accuracy</h3>
+<pre><code>testing_pred &lt;- predict(model, crossval)
+confusionMatrix(testing_pred, crossval$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2231    5    0    0    0
+##          B    0 1509    1    0    0
+##          C    0    4 1366    5    0
+##          D    0    0    1 1281    9
+##          E    1    0    0    0 1433
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9967          
+##                  95% CI : (0.9951, 0.9978)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9958          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9996   0.9941   0.9985   0.9961   0.9938
+## Specificity            0.9991   0.9998   0.9986   0.9985   0.9998
+## Pos Pred Value         0.9978   0.9993   0.9935   0.9923   0.9993
+## Neg Pred Value         0.9998   0.9986   0.9997   0.9992   0.9986
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1923   0.1741   0.1633   0.1826
+## Detection Prevalence   0.2850   0.1925   0.1752   0.1645   0.1828
+## Balanced Accuracy      0.9993   0.9970   0.9986   0.9973   0.9968</code></pre>
+<p>The out-of-sample accuracy is 99%. Now, we apply the above model to the clean testing data (20 cases)</p>
+</div>
+
+<div id="testing-our-model-with-new-data-20-cases">
+<h3>
+<a id="testing-our-model-with-new-data-20-cases" class="anchor" href="#testing-our-model-with-new-data-20-cases" aria-hidden="true"><span class="octicon octicon-link"></span></a>Testing our model with new data (20 cases)</h3>
+<pre><code>answers &lt;- predict(model, testing)
+answers &lt;- as.character(answers)
+answers</code></pre>
+<pre><code>##  [1] "B" "A" "B" "A" "A" "E" "D" "B" "A" "A" "B" "C" "B" "A" "E" "E" "A"
+## [18] "B" "B" "B"</code></pre>
+</div>
+
+<p></p>
+</div>
+
+<p></p>
+</div>
+
+
+
+
+
+
+
+<p>
+</p>
+      </section>
+
+      <footer>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <p>this project by <a href="https://github.com/nohaelprince">nohaelprince</a> can be found on <a href="https://github.com/nohaelprince/ActivityQualityPrediction">GitHub</a></p>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+        <span class="octocat"></span>
+      </footer>
+
+    </div>
+
+    
+  </body>
+</html>
