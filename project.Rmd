@@ -96,17 +96,7 @@ crossval <- cleanTrainingdata[-inTrain, ]
 #model <- randomForest(classe ~ ., data = training, importance = FALSE)
 cvCtrl <- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
 model <- train(classe ~ ., data = trainingdata, method = "rf", trControl = cvCtrl)
-vimp <- varImp(model, scale=FALSE)
-vimp <- vimp[order(vimp$Overall,decreasing = TRUE),,drop = FALSE] # order descendingly
-vimp$var <- rownames(vimp)    # add rownames              
-# vimp # print all the important features ordered based on the most important.
 
-# print the 10 top important features
-vimp$var[1:10]
-
-# plot the 10 top important features
-barplot(vimp$Overall[1:10], main="Top 10 Important Features", horiz=TRUE, col=rainbow(10), 
-names.arg=vimp$var[1:10])
 ```
 
 
@@ -116,8 +106,8 @@ Here, we calculate the in sample accuracy which is the prediction accuracy of ou
 
 
 ```{r, echo=TRUE, cache=TRUE}
-traing_pred <- predict(model, trainingdata)# We build the model using 5-fold cross validation.
-confusionMatrix(training_pred, training$classe)
+training_pred <- predict(model, trainingdata)# We build the model using 5-fold cross validation.
+confusionMatrix(training_pred, trainingdata$classe)
 ```
 Thus, from the above confusion matrix, sample accuracy value is 100%.
 
@@ -128,8 +118,10 @@ confusionMatrix(testing_pred, crossval$classe)
 
 ```
 
+The out-of-sample accuracy is 99%.
 Now, we apply the above model to the clean testing data (20 cases)
 
+### Testing our model with new data (20 cases)
 ```{r, echo=TRUE}
 answers <- predict(model, testing)
 answers <- as.character(answers)
