@@ -151,13 +151,3 @@ Now, we are ready for prediction...
 ```{r, echo=TRUE}
 predictTest <- predict(model, data_test_clean)
 ```
-
-
-set.seed(33833)
-
-# Fit a random forest predictor relating the factor variable y to the remaining variables.
-a <- randomForest(data$classe ~ ., data = training, importance = FALSE)
-b <- varImp(a)
-order(b)
-
-```
