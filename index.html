@@ -60,7 +60,7 @@
 
 <p></p>
 
-<p></p>project
+<p></p>Prediction of Quality of Active Work
 
 
 
@@ -101,7 +101,7 @@ code{white-space: pre;}
 
 <div id="header">
 <h1>
-<a id="project" class="anchor" href="#project" aria-hidden="true"><span class="octicon octicon-link"></span></a>project</h1>
+<a id="prediction-of-quality-of-active-work" class="anchor" href="#prediction-of-quality-of-active-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prediction of Quality of Active Work</h1>
 <h4>
 <a id="noha-elprince" class="anchor" href="#noha-elprince" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>Noha Elprince</em>
 </h4>
@@ -144,9 +144,9 @@ code{white-space: pre;}
 <h2>
 <a id="processing-data" class="anchor" href="#processing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Processing data</h2>
 <p>First, we check how many columns have NA values in the training and testing data and what is the quantity of NA values present.</p>
-<pre><code>  sum(is.na(training)) #[1] 1921600</code></pre>
+<pre><code>   sum(is.na(training)) #[1] 1921600</code></pre>
 <pre><code>## [1] 1921600</code></pre>
-<pre><code>  sum(is.na(testing))  #[1] 2000 </code></pre>
+<pre><code>   sum(is.na(testing))  #[1] 2000 </code></pre>
 <pre><code>## [1] 2000</code></pre>
 <p>we are going to ignore NA values using the following code segment</p>
 <pre><code># for training dataset
@@ -158,10 +158,7 @@ badColumns &lt;- columnNACounts &gt;= 19200
 cleanTrainingdata &lt;- training[!badColumns]        
 sum(is.na(cleanTrainingdata)) # 0</code></pre>
 <pre><code>## [1] 0</code></pre>
-<pre><code>cleanTrainingdata &lt;- cleanTrainingdata[, c(7:60)] 
-
-
-# same for testing dataset
+<pre><code># same for testing dataset
 columnNACounts &lt;- colSums(is.na(testing))  
 # columnNACounts 
 # after checking columnNACounts , we noticed:
@@ -170,25 +167,43 @@ badColumns &lt;- columnNACounts &gt;= 20
 cleanTestingdata &lt;- testing[!badColumns]       
 sum(is.na(cleanTestingdata)) # 0                   </code></pre>
 <pre><code>## [1] 0</code></pre>
-<pre><code>cleanTestingdata &lt;- cleanTestingdata[, c(7:60)]</code></pre>
 </div>
 
 <div id="feature-selection">
 <h2>
 <a id="feature-selection" class="anchor" href="#feature-selection" aria-hidden="true"><span class="octicon octicon-link"></span></a>Feature Selection</h2>
+<pre><code># remove the first 6 columns as they contain user name and time stamps
+# which are not useful to the classifier
+cleanTrainingdata &lt;- cleanTrainingdata[, c(7:60)] 
+cleanTestingdata &lt;- cleanTestingdata[, c(7:60)]
+dim(cleanTrainingdata) # [1] 19622    54</code></pre>
+<pre><code>## [1] 19622    54</code></pre>
+<pre><code>dim(cleanTestingdata)  # [1] 20 54</code></pre>
+<pre><code>## [1] 20 54</code></pre>
 <div id="exploratory-data-analysis">
 <h3>
 <a id="exploratory-data-analysis" class="anchor" href="#exploratory-data-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exploratory Data Analysis</h3>
 <pre><code>  plot(cleanTrainingdata$classe,col=rainbow(5),main = "classe frequency plot")</code></pre>
 <p><img title alt width="672"></p>
+<pre><code>  attach(cleanTrainingdata)
+  # plot scatter plot matrices to determine relationship: Linear or Nonlinear
+  pairs(classe~num_window+roll_arm+pitch_arm,data=cleanTrainingdata, 
+   main="Simple Scatterplot Matrix")</code></pre>
+<p><img title alt width="672"></p>
+<pre><code>  pairs(classe~roll_belt+pitch_belt+yaw_belt,data=cleanTrainingdata, 
+   main="Simple Scatterplot Matrix")</code></pre>
+<p><img title alt width="672"> From the above analysis, we may conclude that the relation is nonlinear</p>
 <p>Now we start partitioning the data:</p>
 </div>
 
 <div id="partition-cleaned-training-data-a-training-set-and-a-cross-validation-set.">
 <h3>
 <a id="partition-cleaned-training-data--a-training-set-and-a-cross-validation-set" class="anchor" href="#partition-cleaned-training-data--a-training-set-and-a-cross-validation-set" aria-hidden="true"><span class="octicon octicon-link"></span></a>Partition cleaned training data : A training set and a cross validation set.</h3>
-<pre><code>library(caret)
-inTrain &lt;- createDataPartition(y = cleanTrainingdata$classe, p = 0.6, list = FALSE)
+<pre><code>library(caret)</code></pre>
+<pre><code>## Warning: package 'caret' was built under R version 3.1.2</code></pre>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre><code>inTrain &lt;- createDataPartition(y = cleanTrainingdata$classe, p = 0.6, list = FALSE)
 trainingdata &lt;- cleanTrainingdata[inTrain, ]
 crossval &lt;- cleanTrainingdata[-inTrain, ]</code></pre>
 </div>
@@ -196,10 +211,12 @@ crossval &lt;- cleanTrainingdata[-inTrain, ]</code></pre>
 <div id="fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables.">
 <h3>
 <a id="fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables" class="anchor" href="#fit-a-random-forest-predictor-relating-the-factor-variable-classe-to-the-remaining-variables" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fit a random forest predictor relating the factor variable classe to the remaining variables.</h3>
-<pre><code>#library(randomForest); library(kernlab); library(caret)
-#model &lt;- randomForest(classe ~ ., data = training, importance = FALSE)
-cvCtrl &lt;- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
+<pre><code>cvCtrl &lt;- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
+# Build the model using 5-fold cross validation
 model &lt;- train(classe ~ ., data = trainingdata, method = "rf", trControl = cvCtrl)</code></pre>
+<pre><code>## Loading required package: randomForest
+## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <pre><code>## + Fold1: mtry= 2 
 ## - Fold1: mtry= 2 
 ## + Fold1: mtry=27 
@@ -235,9 +252,41 @@ model &lt;- train(classe ~ ., data = trainingdata, method = "rf", trControl = cv
 ## Fitting mtry = 27 on full training set</code></pre>
 </div>
 
-<div id="build-the-model-using-5-fold-cross-validation">
+<div id="to-check-the-importance-of-features">
 <h3>
-<a id="build-the-model-using-5-fold-cross-validation" class="anchor" href="#build-the-model-using-5-fold-cross-validation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build the model using 5-fold cross validation</h3>
+<a id="to-check-the-importance-of-features" class="anchor" href="#to-check-the-importance-of-features" aria-hidden="true"><span class="octicon octicon-link"></span></a>To Check the importance of features</h3>
+<pre><code>vimp &lt;- varImp(model)
+print(vimp)</code></pre>
+<pre><code>## rf variable importance
+## 
+##   only 20 most important variables shown (out of 53)
+## 
+##                      Overall
+## num_window           100.000
+## roll_belt             67.998
+## pitch_forearm         42.220
+## yaw_belt              32.119
+## magnet_dumbbell_z     31.338
+## pitch_belt            29.957
+## magnet_dumbbell_y     29.619
+## roll_forearm          26.876
+## accel_dumbbell_y      12.229
+## accel_forearm_x       11.776
+## magnet_dumbbell_x     11.358
+## roll_dumbbell         11.210
+## accel_belt_z          10.329
+## total_accel_dumbbell   9.381
+## magnet_forearm_z       8.428
+## accel_dumbbell_z       8.056
+## magnet_belt_y          7.982
+## magnet_belt_z          7.861
+## magnet_belt_x          6.143
+## yaw_dumbbell           5.323</code></pre>
+</div>
+
+<div id="calculate-in-sample-accuracy">
+<h3>
+<a id="calculate-in-sample-accuracy" class="anchor" href="#calculate-in-sample-accuracy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Calculate in-sample accuracy</h3>
 <p>Here, we calculate the in sample accuracy which is the prediction accuracy of our model on the training data set.</p>
 <pre><code>training_pred &lt;- predict(model, trainingdata)# We build the model using 5-fold cross validation.
 confusionMatrix(training_pred, trainingdata$classe)</code></pre>
@@ -284,33 +333,33 @@ confusionMatrix(testing_pred, crossval$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2231    5    0    0    0
-##          B    0 1509    1    0    0
-##          C    0    4 1366    5    0
-##          D    0    0    1 1281    9
-##          E    1    0    0    0 1433
+##          A 2231    2    0    0    0
+##          B    0 1515    1    0    0
+##          C    0    1 1367    6    0
+##          D    0    0    0 1280    3
+##          E    1    0    0    0 1439
 ## 
 ## Overall Statistics
-##                                           
-##                Accuracy : 0.9967          
-##                  95% CI : (0.9951, 0.9978)
-##     No Information Rate : 0.2845          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.9958          
-##  Mcnemar's Test P-Value : NA              
+##                                         
+##                Accuracy : 0.9982        
+##                  95% CI : (0.997, 0.999)
+##     No Information Rate : 0.2845        
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16     
+##                                         
+##                   Kappa : 0.9977        
+##  Mcnemar's Test P-Value : NA            
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9996   0.9941   0.9985   0.9961   0.9938
-## Specificity            0.9991   0.9998   0.9986   0.9985   0.9998
-## Pos Pred Value         0.9978   0.9993   0.9935   0.9923   0.9993
-## Neg Pred Value         0.9998   0.9986   0.9997   0.9992   0.9986
+## Sensitivity            0.9996   0.9980   0.9993   0.9953   0.9979
+## Specificity            0.9996   0.9998   0.9989   0.9995   0.9998
+## Pos Pred Value         0.9991   0.9993   0.9949   0.9977   0.9993
+## Neg Pred Value         0.9998   0.9995   0.9998   0.9991   0.9995
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2843   0.1923   0.1741   0.1633   0.1826
-## Detection Prevalence   0.2850   0.1925   0.1752   0.1645   0.1828
-## Balanced Accuracy      0.9993   0.9970   0.9986   0.9973   0.9968</code></pre>
+## Detection Rate         0.2843   0.1931   0.1742   0.1631   0.1834
+## Detection Prevalence   0.2846   0.1932   0.1751   0.1635   0.1835
+## Balanced Accuracy      0.9996   0.9989   0.9991   0.9974   0.9989</code></pre>
 <p>The out-of-sample accuracy is 99%. Now, we apply the above model to the clean testing data (20 cases)</p>
 </div>
 
