@@ -1,10 +1,11 @@
 ---
-title: "project"
+title: "Prediction of Quality of Active Work"
 author: "Noha Elprince"
 date: "November 23, 2014"
 output: html_document
 ---
 ## Summary
+
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit, it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, our goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
 
 Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:
@@ -42,10 +43,9 @@ The dataset comprises `r ncol(testing)` features and `r  nrow(training)` observa
 First, we check how many columns have NA values in the training and testing data and what is the quantity of NA values present.
 
 ```{r, echo=TRUE}
-  sum(is.na(training)) #[1] 1921600
-  sum(is.na(testing))  #[1] 2000 
+   sum(is.na(training)) #[1] 1921600
+   sum(is.na(testing))  #[1] 2000 
 ```
-
 
 we are going to ignore NA values using the following code segment
 
@@ -58,8 +58,6 @@ columnNACounts <- colSums(is.na(training))
 badColumns <- columnNACounts >= 19200           
 cleanTrainingdata <- training[!badColumns]        
 sum(is.na(cleanTrainingdata)) # 0
-cleanTrainingdata <- cleanTrainingdata[, c(7:60)] 
-
 
 # same for testing dataset
 columnNACounts <- colSums(is.na(testing))  
@@ -69,16 +67,30 @@ columnNACounts <- colSums(is.na(testing))
 badColumns <- columnNACounts >= 20                
 cleanTestingdata <- testing[!badColumns]       
 sum(is.na(cleanTestingdata)) # 0                   
-cleanTestingdata <- cleanTestingdata[, c(7:60)]
 ```
 
 ## Feature Selection
 
- 
+```{r, echo=TRUE}
+# remove the first 6 columns as they contain user name and time stamps
+# which are not useful to the classifier
+cleanTrainingdata <- cleanTrainingdata[, c(7:60)] 
+cleanTestingdata <- cleanTestingdata[, c(7:60)]
+dim(cleanTrainingdata) # [1] 19622    54
+dim(cleanTestingdata)  # [1] 20 54
+```
+
 ### Exploratory Data Analysis
 ```{r, echo=TRUE}
   plot(cleanTrainingdata$classe,col=rainbow(5),main = "classe frequency plot")
+  attach(cleanTrainingdata)
+  # plot scatter plot matrices to determine relationship: Linear or Nonlinear
+  pairs(classe~num_window+roll_arm+pitch_arm,data=cleanTrainingdata, 
+   main="Simple Scatterplot Matrix")
+  pairs(classe~roll_belt+pitch_belt+yaw_belt,data=cleanTrainingdata, 
+   main="Simple Scatterplot Matrix")
 ```
+From the above analysis, we may conclude that the relation is nonlinear
 
 Now we start partitioning the data:
 
@@ -92,15 +104,21 @@ crossval <- cleanTrainingdata[-inTrain, ]
 
 ### Fit a random forest predictor relating the factor variable classe to the remaining variables.
 ```{r, echo=TRUE, cache=TRUE}
-#library(randomForest); library(kernlab); library(caret)
-#model <- randomForest(classe ~ ., data = training, importance = FALSE)
+
 cvCtrl <- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
+# Build the model using 5-fold cross validation
 model <- train(classe ~ ., data = trainingdata, method = "rf", trControl = cvCtrl)
 
 ```
+### To Check the importance of features
+
+```{r, echo=TRUE}
+vimp <- varImp(model)
+print(vimp)
+```
 
 
-### Build the model using 5-fold cross validation
+### Calculate in-sample accuracy
 
 Here, we calculate the in sample accuracy which is the prediction accuracy of our model on the training data set.
 
