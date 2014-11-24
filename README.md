@@ -13,7 +13,7 @@ The data for this project come from this source: <http://groupware.les.inf.puc-r
 
 ### The main objectives of this project are as follows
 
-- Predict the manner in which they did the exercise
-- Build a prediction model
+- Predict the manner in which they did the exercise.
+- Build a prediction model.
 - Calculate the out of sample error.
-- Use the prediction model to predict 20 different test cases provided
+- Use the prediction model to predict 20 different test cases provided.
