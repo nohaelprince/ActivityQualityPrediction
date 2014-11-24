@@ -30,7 +30,7 @@ The main objectives of this project are as follows
 ## Load Data
 ```{r, echo=TRUE}
   training <- read.csv(file="./data/pml-training.csv", head=TRUE, na.strings=c("NA",""))
-  testing <- read.csv(file="data/pml-testing.csv", head=TRUE,na.strings=c("NA",""))
+  testing <- read.csv(file="data/pml-testing.csv", head=TRUE, na.strings=c("NA",""))
   dim(training)   #[1] 19622   160
   dim(testing)    #[1]  20 160
   # str(training)
@@ -58,6 +58,8 @@ columnNACounts <- colSums(is.na(training))
 badColumns <- columnNACounts >= 19200           
 cleanTrainingdata <- training[!badColumns]        
 sum(is.na(cleanTrainingdata)) # 0
+cleanTrainingdata <- cleanTrainingdata[, c(7:60)] 
+
 
 # same for testing dataset
 columnNACounts <- colSums(is.na(testing))  
@@ -67,6 +69,7 @@ columnNACounts <- colSums(is.na(testing))
 badColumns <- columnNACounts >= 20                
 cleanTestingdata <- testing[!badColumns]       
 sum(is.na(cleanTestingdata)) # 0                   
+cleanTestingdata <- cleanTestingdata[, c(7:60)]
 ```
 
 ## Feature Selection
@@ -80,32 +83,41 @@ sum(is.na(cleanTestingdata)) # 0
 Now we start partitioning the data:
 
 ### Partition cleaned training data : A training set and a cross validation set.
-```{r, echo=TRUE}
+```{r, echo=TRUE, cache=TRUE}
+library(caret)
 inTrain <- createDataPartition(y = cleanTrainingdata$classe, p = 0.6, list = FALSE)
-training <- cleanTrainingdata[inTrain, ]
+trainingdata <- cleanTrainingdata[inTrain, ]
 crossval <- cleanTrainingdata[-inTrain, ]
 ```
 
 ### Fit a random forest predictor relating the factor variable classe to the remaining variables.
-```{r, echo=TRUE}
-model <- randomForest(classe ~ ., data = cleanTrainingdata, importance = FALSE)
-
+```{r, echo=TRUE, cache=TRUE}
+#library(randomForest); library(kernlab); library(caret)
+#model <- randomForest(classe ~ ., data = training, importance = FALSE)
+cvCtrl <- trainControl(method = "cv", number = 5, allowParallel = TRUE, verboseIter = TRUE)
+model <- train(classe ~ ., data = trainingdata, method = "rf", trControl = cvCtrl)
 vimp <- varImp(model, scale=FALSE)
 vimp <- vimp[order(vimp$Overall,decreasing = TRUE),,drop = FALSE] # order descendingly
 vimp$var <- rownames(vimp)    # add rownames              
 # vimp # print all the important features ordered based on the most important.
-# plot the 5 top important features
-barplot(vimp$Overall[1:10], main="Top 5 Important Features", horiz=TRUE, col=rainbow(10), 
-  names.arg=vimp$var[1:10])
+
+# print the 10 top important features
+vimp$var[1:10]
+
+# plot the 10 top important features
+barplot(vimp$Overall[1:10], main="Top 10 Important Features", horiz=TRUE, col=rainbow(10), 
+names.arg=vimp$var[1:10])
 ```
+
 
 ### Build the model using 5-fold cross validation
 
 Here, we calculate the in sample accuracy which is the prediction accuracy of our model on the training data set.
 
-```{r, echo=TRUE}
-predictCrossVal <- predict(model, cleanTrainingData)# We build the model using 5-fold cross validation.
-confusionMatrix(crossval$classe, predictCrossVal)
+
+```{r, echo=TRUE, cache=TRUE}
+traing_pred <- predict(model, trainingdata)# We build the model using 5-fold cross validation.
+confusionMatrix(training_pred, training$classe)
 ```
 Thus, from the above confusion matrix, sample accuracy value is 100%.
 
@@ -119,7 +131,7 @@ confusionMatrix(testing_pred, crossval$classe)
 Now, we apply the above model to the clean testing data (20 cases)
 
 ```{r, echo=TRUE}
-answers <- predict(model, cleanTestingdata)
+answers <- predict(model, testing)
 answers <- as.character(answers)
 answers
 ```
@@ -128,26 +140,3 @@ answers
 
 
 
-### Apply the same treatment to the final testing data
-```{r, echo=TRUE}
-# remove features with near zero variability
-nsv <- nearZeroVar(testing,saveMetrics=TRUE) 
-dim(testing) # [1]  20 160
-removed_features <- testing[, nzv] # check removed features
-names(removed_features)
-filteredDescr <- testing[, -nzv]
-dim(filteredDescr) # [1]  20 100
-# remove columns with NA
-data_test_NAs <- apply(filteredDescr, 2, function(x) {sum(is.na(x))})
-data_test_clean <- data_test[,which(data_test_NAs == 0)]
-# remove the first 7 columns as they include names and timestamps
-data_test_clean <- data_test_clean[8:length(data_test_clean)]
-dim(data_test_clean) # [1] 20 52
-```
-The cleaned testing data has same no. of features (52) as the cleaned training data.
-Now, we are ready for prediction...
-
-### predict the classes of the test set
-```{r, echo=TRUE}
-predictTest <- predict(model, data_test_clean)
-```
